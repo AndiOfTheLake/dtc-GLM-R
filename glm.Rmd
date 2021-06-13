@@ -1,0 +1,21 @@
+---
+title: 'dtc: GLM in R'
+author: "Andi"
+Last updated: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE}
+# knitr::read_chunk('survival.R')
+```
+
+```{r, echo = FALSE, results='hide'}
+# if we used both 'echo=TRUE' and 'results=hide' the pipe would not work properly
+# if we used 'echo = FALSE' and 'results=hide' we would have only messages (i.e. attaching package) If we don't want them we set 'error = FALSE', 'warning = FALSE', and 'message = FALSE'.
+```
