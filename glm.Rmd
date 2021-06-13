@@ -128,3 +128,224 @@ pred_out <- predict(object = poisson_out, newdata = new_dat, type = "response")
 print(pred_out)
 ```
 
+## Fitting a logistic regression
+
+```{r}
+bus<-read.csv("bus.csv")
+bus$Bus<-factor(bus$Bus, levels = c("No", "Yes"))
+
+# Build a glm using the bus data frame that models Bus predicted by CommuteDays
+bus_out <- glm(Bus ~CommuteDays, data = bus, family = "binomial")
+```
+
+## Examining & interpreting logistic regression outputs
+
+```{r}
+# Print the bus_out (be sure to use the print function)
+print(bus_out)
+
+# Look at the summary of bus_out
+summary(bus_out)
+
+# Look at the tidy() output of bus_out
+tidy(bus_out)
+```
+
+## Simulating binary data
+
+```{r}
+set.seed(613)
+
+# Simulate 1 draw with a sample size of 100
+binomial_sim <- rbinom(n = 1, size = 100, prob = 0.5)
+
+# Simulate 100 draw with a sample size of 1 
+bernoulli_sim <- rbinom(n = 100, size = 1, prob = 0.5)
+
+# Print the results from the binomial
+print(binomial_sim)
+
+# Sum the results from the Bernoulli
+sum(bernoulli_sim)
+```
+
+## Long-form logistic regression input
+
+directly models each observation
+
+```{r, data long, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+data_long
+
+# Fit a a long format logistic regression
+lr_1 <- glm(y ~ x, data = data_long, family = "binomial")
+print(lr_1)
+```
+
+There are 28 entries hence the degrees of freedom are 27. This is because degrees of freedom are usually the number of data points minus the number of parameters estimated.
+
+## Wide-form input logistic regression
+
+```{r, data wide, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+data_wide
+
+# Fit a wide form logistic regression
+lr_2 <- glm(cbind(success, fail) ~ x, family = 'binomial',
+            data = data_wide)
+
+# Print the output of lr_2
+print(lr_2)
+
+# Using dataWide, fit a glm with successProportion
+# predicted by x and weights = Total
+lr_3 <- glm(successProportion ~ x, weights = Total, data = data_wide, family = "binomial")
+
+# Print the output of lr_3
+print(lr_3)
+```
+
+While all three methods produce the same regression coefficients, notice how the degrees of freedom in model 1 differed from the degrees of freedom in models 2 and 3. In general, the degrees of freedom are greater for the long form input. The choice of model input formatting is a personal choice and is usually driven by the structure of the data and questions being asked with the data. 
+
+## Fitting probits and logits
+
+```{r}
+# Fit a GLM with a logit link and save it as bus_logit
+bus_logit <- glm(Bus ~ CommuteDays, data = bus, family = binomial(link = "logit"))
+
+# Fit a GLM with probit link and save it as bus_probit
+bus_probit <- glm(Bus ~ CommuteDays, data = bus, family = binomial(link = "probit"))
+
+# Print model summaries
+summary(bus_logit)
+summary(bus_probit)
+```
+
+## Simulating a logit
+
+```{r}
+set.seed(613)
+
+# Convert from the logit scale to a probability
+p <- plogis(0)
+p
+
+# Simulate a logit 
+rbinom(n = 10, size = 1, p)
+```
+
+## Simulating a probit
+
+```{r}
+set.seed(613)
+
+# Convert from the probit scale to a probability
+p <- pnorm(0)
+p
+
+# Simulate a probit
+rbinom(n = 10, size = 1, p)
+```
+
+## lm vs. Poisson coefficients
+
+```{r, eval=FALSE}
+# Extract the coeffients from lm_out
+lm_coef <- coef(lm_out)
+lm_coef
+
+# Extract the coefficients from poisson_out
+poisson_coef <- coef(poisson_out)
+poisson_coef
+
+# Take the exponential using exp()
+poisson_coef_exp <- exp(poisson_coef)
+poisson_coef_exp
+```
+
+## Poisson regression plotting
+
+```{r, pois plot, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+library(ggplot2)
+
+# Use geom_smooth to plot a continuous predictor variable
+ggplot(data = dat, aes(x = dose, y = cells)) + 
+	geom_jitter(width = 0.05, height = 0.05) + 
+	geom_smooth(method = 'glm', method.args = list(family = 'poisson'))
+```
+
+## Extracting and interpreting odds-ratios (for logistic regression)
+
+```{r, eval=FALSE}
+# Extract out the coefficients 
+coef_out <- coef(bus_out)
+
+# Convert the coefficients to odds-ratios 
+exp(coef_out)
+```
+
+## Odds-ratios & confidence intervals in the Tidyverse
+
+```{r,eval=FALSE}
+# Exponentiate the results and extract the confidence intervals of bus_out with tidy()
+tidy(bus_out, exponentiate = TRUE, conf.int = TRUE)
+```
+
+## Default trend lines
+
+```{r}
+bus$Bus2<-ifelse(bus$Bus=="Yes", 1, 0)
+head(bus)
+
+# Create a jittered plot of MilesOneWay vs Bus2 using the bus dataset
+gg_jitter <- ggplot(data = bus, aes(x = MilesOneWay, y = Bus2)) + 
+	geom_jitter(width = 0, height = 0.05) +
+	ylab("Probability of riding the bus") +
+	xlab("One-way commute trip (in miles)")
+
+# Add a geom_smooth() to your plot
+gg_jitter + geom_smooth()
+```
+
+This does not look reasonable! We need to use the `"glm"` method.
+
+```{r}
+# Create a jittered plot of MilesOneWay vs Bus2 using the bus dataset
+gg_jitter <- ggplot(data = bus, aes(x = MilesOneWay, y = Bus2)) + 
+	geom_jitter(width = 0, height = 0.05) +
+	ylab("Probability of riding the bus") +
+	xlab("One-way commute trip (in miles)")
+
+# Add a geom_smooth() that uses a GLM method to your plot
+gg_jitter + geom_smooth(method =  "glm" , method.args = list(family = "binomial"))
+```
+
+## Comparing probits and logits
+
+```{r}
+# Add geom_smooth() lines for the probit and logit link functions
+gg_jitter + 
+	geom_smooth(method = 'glm', 
+                method.args = list(family = binomial(link = "probit")), 
+                color = 'red', se = FALSE) +
+	geom_smooth(method = 'glm', 
+                method.args = list(family = binomial(link = "logit")), 
+                color = 'blue', se = FALSE)
+```
+
+## Multiple logistic regression
+
+```{r}
+
+```
+

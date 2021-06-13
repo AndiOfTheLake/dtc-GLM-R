@@ -462,3 +462,463 @@ print(pred_out)
 ## 0.08611111 0.12365591 0.07795699
 ```
 
+## Fitting a logistic regression
+
+
+```r
+bus<-read.csv("bus.csv")
+bus$Bus<-factor(bus$Bus, levels = c("No", "Yes"))
+
+# Build a glm using the bus data frame that models Bus predicted by CommuteDays
+bus_out <- glm(Bus ~CommuteDays, data = bus, family = "binomial")
+```
+
+## Examining & interpreting logistic regression outputs
+
+
+```r
+# Print the bus_out (be sure to use the print function)
+print(bus_out)
+```
+
+```
+## 
+## Call:  glm(formula = Bus ~ CommuteDays, family = "binomial", data = bus)
+## 
+## Coefficients:
+## (Intercept)  CommuteDays  
+##     -1.4549       0.1299  
+## 
+## Degrees of Freedom: 15891 Total (i.e. Null);  15890 Residual
+## Null Deviance:	    19570 
+## Residual Deviance: 19540 	AIC: 19540
+```
+
+```r
+# Look at the summary of bus_out
+summary(bus_out)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ CommuteDays, family = "binomial", data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.9560  -0.8595  -0.8595   1.5330   1.7668  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -1.45493    0.11471 -12.683  < 2e-16 ***
+## CommuteDays  0.12985    0.02312   5.616 1.96e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19536  on 15890  degrees of freedom
+## AIC: 19540
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+```r
+# Look at the tidy() output of bus_out
+tidy(bus_out)
+```
+
+```
+## # A tibble: 2 x 5
+##   term        estimate std.error statistic  p.value
+##   <chr>          <dbl>     <dbl>     <dbl>    <dbl>
+## 1 (Intercept)   -1.45     0.115     -12.7  7.32e-37
+## 2 CommuteDays    0.130    0.0231      5.62 1.96e- 8
+```
+
+## Simulating binary data
+
+
+```r
+set.seed(613)
+
+# Simulate 1 draw with a sample size of 100
+binomial_sim <- rbinom(n = 1, size = 100, prob = 0.5)
+
+# Simulate 100 draw with a sample size of 1 
+bernoulli_sim <- rbinom(n = 100, size = 1, prob = 0.5)
+
+# Print the results from the binomial
+print(binomial_sim)
+```
+
+```
+## [1] 45
+```
+
+```r
+# Sum the results from the Bernoulli
+sum(bernoulli_sim)
+```
+
+```
+## [1] 50
+```
+
+## Long-form logistic regression input
+
+directly models each observation
+
+
+
+
+```r
+data_long
+```
+
+```
+##    x       y
+## 1  a    fail
+## 2  a    fail
+## 3  a    fail
+## 4  a    fail
+## 5  a success
+## 6  a    fail
+## 7  a    fail
+## 8  a    fail
+## 9  a    fail
+## 10 a    fail
+## 11 a    fail
+## 12 a    fail
+## 13 a    fail
+## 14 a success
+## 15 b success
+## 16 b    fail
+## 17 b success
+## 18 b success
+## 19 b success
+## 20 b success
+## 21 b success
+## 22 b success
+## 23 b success
+## 24 b success
+## 25 b success
+## 26 b    fail
+## 27 b success
+## 28 b    fail
+```
+
+```r
+# Fit a a long format logistic regression
+lr_1 <- glm(y ~ x, data = data_long, family = "binomial")
+print(lr_1)
+```
+
+```
+## 
+## Call:  glm(formula = y ~ x, family = "binomial", data = data_long)
+## 
+## Coefficients:
+## (Intercept)           xb  
+##      -1.792        3.091  
+## 
+## Degrees of Freedom: 27 Total (i.e. Null);  26 Residual
+## Null Deviance:	    38.67 
+## Residual Deviance: 26.03 	AIC: 30.03
+```
+
+There are 28 entries hence the degrees of freedom are 27. This is because degrees of freedom are usually the number of data points minus the number of parameters estimated.
+
+## Wide-form input logistic regression
+
+
+
+
+```r
+data_wide
+```
+
+```
+##   x fail success Total successProportion
+## 1 a   12       2    14         0.1428571
+## 2 b    3      11    14         0.7857143
+```
+
+```r
+# Fit a wide form logistic regression
+lr_2 <- glm(cbind(success, fail) ~ x, family = 'binomial',
+            data = data_wide)
+
+# Print the output of lr_2
+print(lr_2)
+```
+
+```
+## 
+## Call:  glm(formula = cbind(success, fail) ~ x, family = "binomial", 
+##     data = data_wide)
+## 
+## Coefficients:
+## (Intercept)           xb  
+##      -1.792        3.091  
+## 
+## Degrees of Freedom: 1 Total (i.e. Null);  0 Residual
+## Null Deviance:	    12.64 
+## Residual Deviance: 4.441e-15 	AIC: 9.215
+```
+
+```r
+# Using dataWide, fit a glm with successProportion
+# predicted by x and weights = Total
+lr_3 <- glm(successProportion ~ x, weights = Total, data = data_wide, family = "binomial")
+
+# Print the output of lr_3
+print(lr_3)
+```
+
+```
+## 
+## Call:  glm(formula = successProportion ~ x, family = "binomial", data = data_wide, 
+##     weights = Total)
+## 
+## Coefficients:
+## (Intercept)           xb  
+##      -1.792        3.091  
+## 
+## Degrees of Freedom: 1 Total (i.e. Null);  0 Residual
+## Null Deviance:	    12.64 
+## Residual Deviance: 2.22e-16 	AIC: 9.215
+```
+
+While all three methods produce the same regression coefficients, notice how the degrees of freedom in model 1 differed from the degrees of freedom in models 2 and 3. In general, the degrees of freedom are greater for the long form input. The choice of model input formatting is a personal choice and is usually driven by the structure of the data and questions being asked with the data. 
+
+## Fitting probits and logits
+
+
+```r
+# Fit a GLM with a logit link and save it as bus_logit
+bus_logit <- glm(Bus ~ CommuteDays, data = bus, family = binomial(link = "logit"))
+
+# Fit a GLM with probit link and save it as bus_probit
+bus_probit <- glm(Bus ~ CommuteDays, data = bus, family = binomial(link = "probit"))
+
+# Print model summaries
+summary(bus_logit)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ CommuteDays, family = binomial(link = "logit"), 
+##     data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.9560  -0.8595  -0.8595   1.5330   1.7668  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -1.45493    0.11471 -12.683  < 2e-16 ***
+## CommuteDays  0.12985    0.02312   5.616 1.96e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19536  on 15890  degrees of freedom
+## AIC: 19540
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+```r
+summary(bus_probit)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ CommuteDays, family = binomial(link = "probit"), 
+##     data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.9545  -0.8596  -0.8596   1.5328   1.7706  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.88951    0.06833 -13.017  < 2e-16 ***
+## CommuteDays  0.07810    0.01380   5.658 1.53e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19536  on 15890  degrees of freedom
+## AIC: 19540
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+## Simulating a logit
+
+
+```r
+set.seed(613)
+
+# Convert from the logit scale to a probability
+p <- plogis(0)
+p
+```
+
+```
+## [1] 0.5
+```
+
+```r
+# Simulate a logit 
+rbinom(n = 10, size = 1, p)
+```
+
+```
+##  [1] 1 1 0 1 0 1 1 1 0 0
+```
+
+## Simulating a probit
+
+
+```r
+set.seed(613)
+
+# Convert from the probit scale to a probability
+p <- pnorm(0)
+p
+```
+
+```
+## [1] 0.5
+```
+
+```r
+# Simulate a probit
+rbinom(n = 10, size = 1, p)
+```
+
+```
+##  [1] 1 1 0 1 0 1 1 1 0 0
+```
+
+## lm vs. Poisson coefficients
+
+
+```r
+# Extract the coeffients from lm_out
+lm_coef <- coef(lm_out)
+lm_coef
+
+# Extract the coefficients from poisson_out
+poisson_coef <- coef(poisson_out)
+poisson_coef
+
+# Take the exponential using exp()
+poisson_coef_exp <- exp(poisson_coef)
+poisson_coef_exp
+```
+
+## Poisson regression plotting
+
+
+
+
+```r
+library(ggplot2)
+
+# Use geom_smooth to plot a continuous predictor variable
+ggplot(data = dat, aes(x = dose, y = cells)) + 
+	geom_jitter(width = 0.05, height = 0.05) + 
+	geom_smooth(method = 'glm', method.args = list(family = 'poisson'))
+```
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+![](glm_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+
+## Extracting and interpreting odds-ratios (for logistic regression)
+
+
+```r
+# Extract out the coefficients 
+coef_out <- coef(bus_out)
+
+# Convert the coefficients to odds-ratios 
+exp(coef_out)
+```
+
+## Odds-ratios & confidence intervals in the Tidyverse
+
+
+```r
+# Exponentiate the results and extract the confidence intervals of bus_out with tidy()
+tidy(bus_out, exponentiate = TRUE, conf.int = TRUE)
+```
+
+## Default trend lines
+
+
+```r
+bus$Bus2<-ifelse(bus$Bus=="Yes", 1, 0)
+head(bus)
+```
+
+```
+##   CommuteDays MilesOneWay Bus Bus2
+## 1           5    19.54675 Yes    1
+## 2           5    19.54675 Yes    1
+## 3           5    19.54675 Yes    1
+## 4           5    19.54675 Yes    1
+## 5           3    19.54675 Yes    1
+## 6           4    21.66784 Yes    1
+```
+
+```r
+# Create a jittered plot of MilesOneWay vs Bus2 using the bus dataset
+gg_jitter <- ggplot(data = bus, aes(x = MilesOneWay, y = Bus2)) + 
+	geom_jitter(width = 0, height = 0.05) +
+	ylab("Probability of riding the bus") +
+	xlab("One-way commute trip (in miles)")
+
+# Add a geom_smooth() to your plot
+gg_jitter + geom_smooth()
+```
+
+```
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+```
+
+![](glm_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+
+This does not look reasonable! We need to use the `"glm"` method.
+
+
+```r
+# Create a jittered plot of MilesOneWay vs Bus2 using the bus dataset
+gg_jitter <- ggplot(data = bus, aes(x = MilesOneWay, y = Bus2)) + 
+	geom_jitter(width = 0, height = 0.05) +
+	ylab("Probability of riding the bus") +
+	xlab("One-way commute trip (in miles)")
+
+# Add a geom_smooth() that uses a GLM method to your plot
+gg_jitter + geom_smooth(method =  "glm" , method.args = list(family = "binomial"))
+```
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+![](glm_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+
