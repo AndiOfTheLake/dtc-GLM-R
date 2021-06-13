@@ -343,9 +343,124 @@ gg_jitter +
                 color = 'blue', se = FALSE)
 ```
 
-## Multiple logistic regression
+## Fitting a multiple logistic regression
 
 ```{r}
+# Build a logistic regression with Bus predicted by CommuteDays and MilesOneWay
+bus_both <- glm(Bus ~ CommuteDays + MilesOneWay, data = bus, family = "binomial")
+
+# Look at the summary of the output
+summary(bus_both)
+```
+
+## Building two models
+
+```{r}
+# Build a logistic regression with Bus predicted by CommuteDays
+bus_days <- glm(Bus ~ CommuteDays, data = bus, family = "binomial")
+
+# Build a logistic regression with Bus predicted by MilesOneWay
+bus_miles <- glm(Bus ~ MilesOneWay, data = bus, family = "binomial")
+
+summary(bus_days)
+summary(bus_miles)
+```
+
+## Comparing variable order
+
+The order of predictor variables can be important, especially if predictors are correlated. This is because changing the order of correlated predictor variables can change the estimates for the regression coefficients. The name for this problem is Multicollinearity.
+
+During this exercise, you will build two different multiple regressions with the bus data in order to compare the importance of model inputs order. First, examine the correlation between CommuteDays and MilesOneWay. Second, build two logistic regressions using the bus data frame where Bus is predicted by CommuteDays and MilesOneWay in separate orders.
+
+After you build the two models, look at each model's summary() to see the outputs.
+
+```{r}
+# Run a correlation
+cor(bus$CommuteDays, bus$MilesOneWay)
+
+# Build a glm with CommuteDays first and MilesOneWay second
+bus_one <- glm(Bus ~ CommuteDays + MilesOneWay, data = bus, family = "binomial")
+
+# Build a glm with MilesOneWay first and CommuteDays second
+bus_two <- glm(Bus ~ MilesOneWay + CommuteDays, data = bus, family = "binomial")
+
+# Print model summaries
+summary(bus_one)
+summary(bus_two)
+```
+
+Notice how in this case, order was not important for the regression predictor variables. Usually, this is the case. Practically speaking, the easiest way to check this assumption is to change the order of the variables in the regression.
+
+## Multiple slopes
+
+```{r, eval=FALSE}
+# Use model.matrix() with size
+model.matrix(~ size)
+model.matrix(~ size + count)
+```
+
+## Intercepts
+
+```{r, eval=FALSE}
+# Create a matrix that includes a reference intercept
+model.matrix(~ color)
+
+# Create a matrix that includes an intercept for each group
+model.matrix(~ color - 1)
+```
+
+Notice how model.matrix() has different outputs for each input. The first input gives a baseline intercept and contrast. The second input gives an intercept for each group. The first allows you to compare groups to a reference group and the second allows you to compare all groups to zero.
+
+## Multiple intercepts
+
+```{r, eval=FALSE}
+# Create a matrix that includes color and then shape  
+model.matrix( ~ color + shape - 1)
+
+# Create a matrix that includes shape and then color 
+model.matrix(~ shape + color - 1)
+```
+
+Notice how order is important for the inputs of model.matrix(). The first method created intercepts for each color while the second method created intercepts for each group.
+
+## Simpson's paradox
+
+```{r, ucb, echo=FALSE, results='hide'}
 
 ```
+
+```{r}
+UCB_data
+
+# Build a binomial glm where Admitted and Rejected are predicted by Gender
+glm_1 <- glm(cbind(Admitted, Rejected) ~ Gender, family = 'binomial', data = UCB_data)
+
+# Build a binomial glm where Admitted and Rejected are predicted by Gender and Dept
+glm_2 <- glm(cbind(Admitted, Rejected) ~ Gender + Dept, family = 'binomial', data = UCB_data)
+
+# Look at the summary of both models
+summary(glm_1)
+summary(glm_2)
+```
+
+Note that once Dept is included in the model, the effect of gender is reversed and is no longer significant.
+
+## Include a power term
+
+```{r}
+# Plot linear effect of travel distance on probability of taking the bus
+gg_jitter <-
+	ggplot(data = bus, aes(x = MilesOneWay, y = Bus2)) + 
+	geom_jitter(width = 0, height = 0.05) + 
+	geom_smooth(method = 'glm', 
+                method.args = list(family = 'binomial'))
+
+# Add a non-linear equation to a geom_smooth()
+gg_jitter +
+	geom_smooth(method = 'glm', 
+                method.args = list(family = 'binomial'), 
+                formula = y ~ I(x^2), 
+                color = 'red')
+```
+
 

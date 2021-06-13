@@ -922,3 +922,380 @@ gg_jitter + geom_smooth(method =  "glm" , method.args = list(family = "binomial"
 
 ![](glm_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 
+## Comparing probits and logits
+
+
+```r
+# Add geom_smooth() lines for the probit and logit link functions
+gg_jitter + 
+	geom_smooth(method = 'glm', 
+                method.args = list(family = binomial(link = "probit")), 
+                color = 'red', se = FALSE) +
+	geom_smooth(method = 'glm', 
+                method.args = list(family = binomial(link = "logit")), 
+                color = 'blue', se = FALSE)
+```
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+![](glm_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+
+## Fitting a multiple logistic regression
+
+
+```r
+# Build a logistic regression with Bus predicted by CommuteDays and MilesOneWay
+bus_both <- glm(Bus ~ CommuteDays + MilesOneWay, data = bus, family = "binomial")
+
+# Look at the summary of the output
+summary(bus_both)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ CommuteDays + MilesOneWay, family = "binomial", 
+##     data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0732  -0.9035  -0.7816   1.3968   2.5066  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.707515   0.119719  -5.910 3.42e-09 ***
+## CommuteDays  0.066084   0.023181   2.851  0.00436 ** 
+## MilesOneWay -0.059571   0.003218 -18.512  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19137  on 15889  degrees of freedom
+## AIC: 19143
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+## Building two models
+
+
+```r
+# Build a logistic regression with Bus predicted by CommuteDays
+bus_days <- glm(Bus ~ CommuteDays, data = bus, family = "binomial")
+
+# Build a logistic regression with Bus predicted by MilesOneWay
+bus_miles <- glm(Bus ~ MilesOneWay, data = bus, family = "binomial")
+
+summary(bus_days)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ CommuteDays, family = "binomial", data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.9560  -0.8595  -0.8595   1.5330   1.7668  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -1.45493    0.11471 -12.683  < 2e-16 ***
+## CommuteDays  0.12985    0.02312   5.616 1.96e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19536  on 15890  degrees of freedom
+## AIC: 19540
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+```r
+summary(bus_miles)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ MilesOneWay, family = "binomial", data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0204  -0.9057  -0.7868   1.3974   2.5268  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.375824   0.027801  -13.52   <2e-16 ***
+## MilesOneWay -0.060760   0.003197  -19.01   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19145  on 15890  degrees of freedom
+## AIC: 19149
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+## Comparing variable order
+
+The order of predictor variables can be important, especially if predictors are correlated. This is because changing the order of correlated predictor variables can change the estimates for the regression coefficients. The name for this problem is Multicollinearity.
+
+During this exercise, you will build two different multiple regressions with the bus data in order to compare the importance of model inputs order. First, examine the correlation between CommuteDays and MilesOneWay. Second, build two logistic regressions using the bus data frame where Bus is predicted by CommuteDays and MilesOneWay in separate orders.
+
+After you build the two models, look at each model's summary() to see the outputs.
+
+
+```r
+# Run a correlation
+cor(bus$CommuteDays, bus$MilesOneWay)
+```
+
+```
+## [1] -0.1378974
+```
+
+```r
+# Build a glm with CommuteDays first and MilesOneWay second
+bus_one <- glm(Bus ~ CommuteDays + MilesOneWay, data = bus, family = "binomial")
+
+# Build a glm with MilesOneWay first and CommuteDays second
+bus_two <- glm(Bus ~ MilesOneWay + CommuteDays, data = bus, family = "binomial")
+
+# Print model summaries
+summary(bus_one)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ CommuteDays + MilesOneWay, family = "binomial", 
+##     data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0732  -0.9035  -0.7816   1.3968   2.5066  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.707515   0.119719  -5.910 3.42e-09 ***
+## CommuteDays  0.066084   0.023181   2.851  0.00436 ** 
+## MilesOneWay -0.059571   0.003218 -18.512  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19137  on 15889  degrees of freedom
+## AIC: 19143
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+```r
+summary(bus_two)
+```
+
+```
+## 
+## Call:
+## glm(formula = Bus ~ MilesOneWay + CommuteDays, family = "binomial", 
+##     data = bus)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0732  -0.9035  -0.7816   1.3968   2.5066  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.707515   0.119719  -5.910 3.42e-09 ***
+## MilesOneWay -0.059571   0.003218 -18.512  < 2e-16 ***
+## CommuteDays  0.066084   0.023181   2.851  0.00436 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 19568  on 15891  degrees of freedom
+## Residual deviance: 19137  on 15889  degrees of freedom
+## AIC: 19143
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+Notice how in this case, order was not important for the regression predictor variables. Usually, this is the case. Practically speaking, the easiest way to check this assumption is to change the order of the variables in the regression.
+
+## Multiple slopes
+
+
+```r
+# Use model.matrix() with size
+model.matrix(~ size)
+model.matrix(~ size + count)
+```
+
+## Intercepts
+
+
+```r
+# Create a matrix that includes a reference intercept
+model.matrix(~ color)
+
+# Create a matrix that includes an intercept for each group
+model.matrix(~ color - 1)
+```
+
+Notice how model.matrix() has different outputs for each input. The first input gives a baseline intercept and contrast. The second input gives an intercept for each group. The first allows you to compare groups to a reference group and the second allows you to compare all groups to zero.
+
+## Multiple intercepts
+
+
+```r
+# Create a matrix that includes color and then shape  
+model.matrix( ~ color + shape - 1)
+
+# Create a matrix that includes shape and then color 
+model.matrix(~ shape + color - 1)
+```
+
+Notice how order is important for the inputs of model.matrix(). The first method created intercepts for each color while the second method created intercepts for each group.
+
+## Simpson's paradox
+
+
+
+
+```r
+UCB_data
+```
+
+```
+##    Dept Gender Admitted Rejected
+## 1     A   Male      512      313
+## 2     A Female       89       19
+## 3     B   Male      353      207
+## 4     B Female       17        8
+## 5     C   Male      120      205
+## 6     C Female      202      391
+## 7     D   Male      138      279
+## 8     D Female      131      244
+## 9     E   Male       53      138
+## 10    E Female       94      299
+## 11    F   Male       22      351
+## 12    F Female       24      317
+```
+
+```r
+# Build a binomial glm where Admitted and Rejected are predicted by Gender
+glm_1 <- glm(cbind(Admitted, Rejected) ~ Gender, family = 'binomial', data = UCB_data)
+
+# Build a binomial glm where Admitted and Rejected are predicted by Gender and Dept
+glm_2 <- glm(cbind(Admitted, Rejected) ~ Gender + Dept, family = 'binomial', data = UCB_data)
+
+# Look at the summary of both models
+summary(glm_1)
+```
+
+```
+## 
+## Call:
+## glm(formula = cbind(Admitted, Rejected) ~ Gender, family = "binomial", 
+##     data = UCB_data)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -16.7915   -4.7613   -0.4365    5.1025   11.2022  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.83049    0.05077 -16.357   <2e-16 ***
+## GenderMale   0.61035    0.06389   9.553   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 877.06  on 11  degrees of freedom
+## Residual deviance: 783.61  on 10  degrees of freedom
+## AIC: 856.55
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+```r
+summary(glm_2)
+```
+
+```
+## 
+## Call:
+## glm(formula = cbind(Admitted, Rejected) ~ Gender + Dept, family = "binomial", 
+##     data = UCB_data)
+## 
+## Deviance Residuals: 
+##       1        2        3        4        5        6        7        8  
+## -1.2487   3.7189  -0.0560   0.2706   1.2533  -0.9243   0.0826  -0.0858  
+##       9       10       11       12  
+##  1.2205  -0.8509  -0.2076   0.2052  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  0.68192    0.09911   6.880 5.97e-12 ***
+## GenderMale  -0.09987    0.08085  -1.235    0.217    
+## DeptB       -0.04340    0.10984  -0.395    0.693    
+## DeptC       -1.26260    0.10663 -11.841  < 2e-16 ***
+## DeptD       -1.29461    0.10582 -12.234  < 2e-16 ***
+## DeptE       -1.73931    0.12611 -13.792  < 2e-16 ***
+## DeptF       -3.30648    0.16998 -19.452  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 877.056  on 11  degrees of freedom
+## Residual deviance:  20.204  on  5  degrees of freedom
+## AIC: 103.14
+## 
+## Number of Fisher Scoring iterations: 4
+```
+
+Note that once Dept is included in the model, the effect of gender is reversed and is no longer significant.
+
+## Include a power term
+
+
+```r
+# Plot linear effect of travel distance on probability of taking the bus
+gg_jitter <-
+	ggplot(data = bus, aes(x = MilesOneWay, y = Bus2)) + 
+	geom_jitter(width = 0, height = 0.05) + 
+	geom_smooth(method = 'glm', 
+                method.args = list(family = 'binomial'))
+
+# Add a non-linear equation to a geom_smooth()
+gg_jitter +
+	geom_smooth(method = 'glm', 
+                method.args = list(family = 'binomial'), 
+                formula = y ~ I(x^2), 
+                color = 'red')
+```
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
+![](glm_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+
+
