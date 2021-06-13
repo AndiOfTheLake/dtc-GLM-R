@@ -1,7 +1,7 @@
 ---
 title: 'dtc: GLM in R'
 author: "Andi"
-Last updated: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "Last updated: `r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_document: 
     keep_md: yes
@@ -12,10 +12,119 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r echo=FALSE}
-# knitr::read_chunk('survival.R')
+knitr::read_chunk('glm.R')
 ```
 
-```{r, echo = FALSE, results='hide'}
+```{r}
+#```{r, echo = FALSE, results='hide'}
 # if we used both 'echo=TRUE' and 'results=hide' the pipe would not work properly
 # if we used 'echo = FALSE' and 'results=hide' we would have only messages (i.e. attaching package) If we don't want them we set 'error = FALSE', 'warning = FALSE', and 'message = FALSE'.
 ```
+
+## Refresher on fitting linear models
+
+```{r, chick, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+# Fit a lm()
+lm(formula = weight ~ Diet, data = chick_weight_end)
+
+# Fit a glm()
+glm(formula = weight ~ Diet , data = chick_weight_end, family = 'gaussian')
+```
+
+## Fitting a Poisson regression in R
+
+```{r, dat, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+# fit y predicted by x with data.frame dat using the poisson family
+poisson_out <- glm(count ~ time, family = "poisson", data = dat)
+
+# print the output
+summary(poisson_out)
+```
+
+## Comparing linear and Poisson regression
+
+```{r}
+# Fit a glm with count predicted by time using data.frame dat and gaussian family
+lm_out <- glm(count ~ time, data = dat, family = "gaussian")
+
+summary(lm_out)
+summary(poisson_out)
+```
+
+## Intercepts-comparisons versus means
+
+```{r, scores, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+# Fit a glm() that estimates the difference between players
+summary(glm(goal ~ player, data = scores, family = 'poisson'))
+
+# Fit a glm() that estimates an intercept for each player 
+summary(glm(goal ~ player - 1, data = scores, family = 'poisson'))
+```
+
+Note that the intercept from model 1, (Intercept), is the same as Lou's coefficient from model 2, playerLou. R allows for two different types of intercepts to be estimated. The first and default setting estimated the number of goals scored by Sam and the difference in goals scored by Lou. The second setting, using - 1, estimated the number of goals scored by Sam AND the number of goals scored by Lou. More generally, the default formula in R uses the first factor level and contrasts all other levels to it. Reording a factor allows you to change the reference level.
+
+## Applying summary(), print(), and tidy() to glm
+
+```{r, fire, echo=FALSE, results='hide'}
+
+```
+
+```{r}
+# Build your linear and Poisson regression models
+lm_out <- lm(Number ~ Month, data = dat)
+poisson_out <- glm(Number ~ Month, data = dat, family = 'poisson')
+
+# Examine the outputs using print()
+print(lm_out)
+print(poisson_out)
+
+# Examine the outputs using summary()
+summary(lm_out)
+summary(poisson_out)
+
+# Examine the outputs using tidy()
+library(broom)
+tidy(lm_out)
+tidy(poisson_out)
+```
+
+## Extracting coefficients from glm()
+
+```{r}
+# Extract the regression coefficients
+coef(poisson_out)
+
+# Extract the confidence intervals
+confint(poisson_out)
+```
+
+## Predicting with glm()
+
+```{r, new fire, echo=FALSE, results='hide'}
+
+```
+
+
+```{r}
+# print the new input months
+print(new_dat)
+
+# use the model to predict with new data 
+pred_out <- predict(object = poisson_out, newdata = new_dat, type = "response")
+
+# print the predictions
+print(pred_out)
+```
+
