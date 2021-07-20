@@ -1,7 +1,7 @@
 ---
 title: 'dtc: GLM in R'
 author: "Andi"
-date: "Last updated: 13 June, 2021"
+date: "Last updated: 20 July, 2021"
 output: 
   html_document: 
     keep_md: yes
